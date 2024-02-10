@@ -5,7 +5,7 @@ import adafruit_ads1x15.ads1115 as ADS
 import math
 from adafruit_ads1x15.analog_in import AnalogIn
 import numpy as np
-import pandas as pd
+# ~ import pandas as pd
 from datetime import datetime
 
 # Create the I2C bus
@@ -30,7 +30,7 @@ try:
         resistance = (10000)*((5.030/voltage)-1)
         weight = math.exp(-(math.log(((resistance/1000)+0.0168)/155.1748)
                                                                 /0.7013))
-        print(f"Time {timestamp} and voltage {voltage} and weight {weight}")
+        print(f"voltage {voltage} and weight {weight}")
         time_data.append(timestamp)
         voltage_data.append(voltage)
         resistance_data.append(resistance)
@@ -53,7 +53,8 @@ except KeyboardInterrupt:
     # ~ return moving_avg
 
 # ~ while True:
-    # ~ voltage: float = volt_avg(50)
+    # ~ #voltage: float = volt_avg(50)
+    # ~ voltage = chan.voltage
     # ~ #resistance: float = (voltage*10000/(5.250 - voltage))
     # ~ resistance: float = (10000)*((5.030/voltage)-1)
     # ~ weight: float = math.exp(-(math.log(((resistance/1000)+0.0168)/155.1748)
@@ -61,4 +62,5 @@ except KeyboardInterrupt:
     # ~ print("{:>5.3f}\t{:>5.3f}\t\t{:>5.3f}".format(  voltage,
                                                     # ~ resistance,
                                                     # ~ weight))
+    # ~ time.sleep(1)
 
