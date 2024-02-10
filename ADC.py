@@ -5,7 +5,7 @@ import adafruit_ads1x15.ads1115 as ADS
 import math
 from adafruit_ads1x15.analog_in import AnalogIn
 import numpy as np
-# ~ import pandas as pd
+import pandas as pd
 from datetime import datetime
 
 # Create the I2C bus
