@@ -6,7 +6,7 @@ import math
 from adafruit_ads1x15.analog_in import AnalogIn
 import numpy as np
 import pandas as pd
-from datatime import datetime
+from datetime import datetime
 
 # Create the I2C bus
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -25,7 +25,7 @@ time_data = []
 
 try:
     while True:
-        timestamp = datatime.now()
+        timestamp = datetime.now()
         voltage = chan.voltage
         resistance = (10000)*((5.030/voltage)-1)
         weight = math.exp(-(math.log(((resistance/1000)+0.0168)/155.1748)
