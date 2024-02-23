@@ -65,7 +65,7 @@ except KeyboardInterrupt:
     data = {'Timestamp': time_data, 'Voltage': voltage_data, 
             'Resistance': resistance_data, 'Weight_1': weight_data_1, 'Weight_2': weight_data_2,'Weight_3': weight_data_3}
     df = pd.DataFrame(data)
-    df.to_csv('FSR_data_acc.csv', index = False)
+    df.to_csv('FSR_data_acc_2.csv', index = False)
     print("Data saved to file!")
 
 # ~ def volt_avg(resolution: int):
