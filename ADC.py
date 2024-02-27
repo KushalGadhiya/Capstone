@@ -18,15 +18,13 @@ ads.gain = 2/3
 # Create single-ended input
 chan = [AnalogIn(ads, ADS.P0), AnalogIn(ads, ADS.P1), AnalogIn(ads, ADS.P2), AnalogIn(ads, ADS.P3)]
 
-threshold = 15
+threshold = 10
 diameter = 0.013
 
-voltage_data = []
-resistance_data = []
-weight_data_1 = []
-weight_data_2 = []
-weight_data_3 = []
 time_data = []
+voltage_data_chan0,voltage_data_chan1,voltage_data_chan2,voltage_data_chan3 = [],[],[],[]
+weight_data_chan0,weight_data_chan1,weight_data_chan2,weight_data_chan3 = [],[],[],[]
+pressure_data_chan0,pressure_data_chan1,pressure_data_chan2,pressure_data_chan3 = [],[],[],[]
 
 weight_buffer = [[0.0,0.0],[0.0,0.0],[0.0,0.0],[0.0,0.0]]
 weight_drift = [0,0,0,0]
@@ -86,20 +84,38 @@ try:
         account_drift(weight)
         pressure = cal_pressure(weight_drift,diameter)
         
-        print(f"weights: {pressure}")
+        print(f"weights: {weight_drift}")
         #print(f"voltage {voltage:.3f} and weight_1 {weight_1:.2f} and weight_2 {weight_2:.2f} weight_3 {weight_3:.2f}")
         #print(f"output = {output_weight:.3f}g and pressure {output_pressure:.2f}Kpa\n")
         
         time_data.append(timestamp)
-        voltage_data.append(voltage)
-        resistance_data.append(resistance)
-        weight_data_1.append(weight[0])
+        voltage_data_chan0.append(voltage[0])
+        voltage_data_chan1.append(voltage[1])
+        voltage_data_chan2.append(voltage[2])
+        voltage_data_chan3.append(voltage[3])
+        
+        # ~ resistance_data.append(resistance)
+        weight_data_chan0.append(weight_drift[0])
+        weight_data_chan1.append(weight_drift[1])
+        weight_data_chan2.append(weight_drift[2])
+        weight_data_chan3.append(weight_drift[3])
+        # weight_data_drift.append(weight_drift)
+        
+        pressure_data_chan0.append(pressure[0])
+        pressure_data_chan1.append(pressure[1])
+        pressure_data_chan2.append(pressure[2])
+        pressure_data_chan3.append(pressure[3])
         
         time.sleep(1)
         
 except KeyboardInterrupt:
-    data = {'Timestamp': time_data, 'Voltage': voltage_data, 
-            'Resistance': resistance_data, 'Weight_1': weight_data_1, 'Weight_2': weight_data_2,'Weight_3': weight_data_3}
+    data = {'Timestamp': time_data, 'Volt_0': voltage_data_chan0, 
+            'Volt_1': voltage_data_chan1, 'Volt_2': voltage_data_chan2,
+            'Volt_3': voltage_data_chan3, 'Weight_0': weight_data_chan0,
+            'Weight_1': weight_data_chan1,'Weight_2': weight_data_chan2,
+            'Weight_3': weight_data_chan3, 'Pressure_0': pressure_data_chan0,
+            'Pressure_1': pressure_data_chan1, 'Pressure_2': pressure_data_chan2,
+            'Pressure_3': pressure_data_chan3}
     df = pd.DataFrame(data)
     df.to_csv('FSR_data_4sensor.csv', index = False)
     print("Data saved to file!")
