@@ -15,10 +15,11 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 ads.gain = 2/3
 
-# Create single-ended input on channel 0
-chan = AnalogIn(ads, ADS.P3)
+# Create single-ended input
+chan = [AnalogIn(ads, ADS.P0), AnalogIn(ads, ADS.P1), AnalogIn(ads, ADS.P2), AnalogIn(ads, ADS.P3)]
 
 threshold = 15
+diameter = 0.013
 
 voltage_data = []
 resistance_data = []
@@ -26,38 +27,73 @@ weight_data_1 = []
 weight_data_2 = []
 weight_data_3 = []
 time_data = []
-weight_buffer = [0.0,0.0]
-output_weight = 0
 
-def account_drift(new_sample):
+weight_buffer = [[0.0,0.0],[0.0,0.0],[0.0,0.0],[0.0,0.0]]
+weight_drift = [0,0,0,0]
+
+def cal_resistance(voltage):
+    ans = []
+    for vol in voltage:
+        result = (10000)*((5.030/vol)-1)
+        ans.append(result)
+    return ans
+
+def cal_voltage(chan):
+    ans = []
+    for terminal in chan:
+        result = terminal.voltage
+        if(result <= 0):
+            result = 0.1
+        ans.append(result)
+    return ans
+
+def cal_weight(resistance):
+    ans = []
+    for res in resistance:
+        # ~ result_1 = math.exp(-(math.log((resistance+16.8104)/155170)/0.7013))
+        # ~ result_2 = (6.7132e7)*(resistance**(-1.6009))+77.7879
+        # ~ result_3 = (1.0686e8)*(resistance**(-1.6811))+32.6381
+        # ~ result_4 = (-3.4230e6)*np.exp(1.7714e4*(1/resistance)) + (3.4229e6)*np.exp(1.7749e4*(1/resistance))
+        result = (1.0686e8)*(res**(-1.6811))+32.6381
+        ans.append(result)
+    return ans
+    
+def account_drift(weight):
     global weight_buffer
-    global output_weight
-    weight_buffer[0] = new_sample
-    slope = (weight_buffer[0] - weight_buffer[1])/1
-    if(abs(slope) >= threshold):
-        output_weight = new_sample
-    weight_buffer[1] = weight_buffer[0]
+    global weight_drift
+    slope = []
+    for i in range(len(weight_buffer)):
+        weight_buffer[i][0] = weight[i]
+        slope.append((weight_buffer[i][0] - weight_buffer[i][1])/1)
+        if(abs(slope[i]) >= threshold):
+            weight_drift[i] = weight[i]
+        weight_buffer[i][1] = weight_buffer[i][0]
+
+def cal_pressure(weight_drift, diameter):
+    ans = []
+    radius = diameter/2
+    for wd in weight_drift:
+        result = ((wd/1000)*9.81)/((np.pi)*(radius**2))/1000
+        ans.append(result)
+    return ans
 
 try:
     while True:
         timestamp = datetime.now()
-        voltage = chan.voltage
-        resistance = (10000)*((5.030/voltage)-1)
-        #weight_1 = math.exp(-(math.log(((resistance/1000)+0.0168)/155.1748)/0.7013))
-        weight_1 = math.exp(-(math.log((resistance+16.8104)/155170)/0.7013))
-        weight_2 = (6.7132e7)*(resistance**(-1.6009))+77.7879
-        weight_3 = (1.0686e8)*(resistance**(-1.6811))+32.6381
-        #weight_4 = (-3.4230e6)*np.exp(1.7714e4*(1/resistance)) + (3.4229e6)*np.exp(1.7749e4*(1/resistance))
-        #account_drift(weight)
-        #output_pressure = ((output_weight/1000)*9.81)/((np.pi)*(0.013**2))/1000
-        print(f"voltage {voltage:.3f} and weight_1 {weight_1:.2f} and weight_2 {weight_2:.2f} weight_3 {weight_3:.2f}")
+        voltage = cal_voltage(chan)
+        resistance = cal_resistance(voltage)
+        weight = cal_weight(resistance)
+        account_drift(weight)
+        pressure = cal_pressure(weight_drift,diameter)
+        
+        print(f"weights: {pressure}")
+        #print(f"voltage {voltage:.3f} and weight_1 {weight_1:.2f} and weight_2 {weight_2:.2f} weight_3 {weight_3:.2f}")
         #print(f"output = {output_weight:.3f}g and pressure {output_pressure:.2f}Kpa\n")
+        
         time_data.append(timestamp)
         voltage_data.append(voltage)
         resistance_data.append(resistance)
-        weight_data_1.append(weight_1)
-        weight_data_2.append(weight_2)
-        weight_data_3.append(weight_3)
+        weight_data_1.append(weight[0])
         
         time.sleep(1)
         
@@ -65,8 +101,15 @@ except KeyboardInterrupt:
     data = {'Timestamp': time_data, 'Voltage': voltage_data, 
             'Resistance': resistance_data, 'Weight_1': weight_data_1, 'Weight_2': weight_data_2,'Weight_3': weight_data_3}
     df = pd.DataFrame(data)
-    df.to_csv('FSR_data_acc_2.csv', index = False)
+    df.to_csv('FSR_data_4sensor.csv', index = False)
     print("Data saved to file!")
+
+
+
+
+
+
+
 
 # ~ def volt_avg(resolution: int):
     # ~ buffer_size = np.array([])
