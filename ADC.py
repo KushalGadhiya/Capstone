@@ -117,7 +117,7 @@ except KeyboardInterrupt:
             'Pressure_1': pressure_data_chan1, 'Pressure_2': pressure_data_chan2,
             'Pressure_3': pressure_data_chan3}
     df = pd.DataFrame(data)
-    df.to_csv('FSR_data_4sensor.csv', index = False)
+    df.to_csv('FSR_data_debug.csv', index = False)
     print("Data saved to file!")
 
 
